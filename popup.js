@@ -1,52 +1,60 @@
-/**
- * Cookie Editor Popup Script
- * This script handles updating the "leftCredits" cookie to 3 for the .vanceai.com domain.
- */
+// popup.js - Merged and Enhanced for 'cookieeditor' project
 
 /**
- * Function to update the "leftCredits" cookie to 3.
+ * Function to update the "leftCredits" cookie to 3 for the .vanceai.com domain.
  */
-function updateCookie() {
-  // Define the target domain
-  const targetDomain = '.vanceai.com';
+function updateLeftCreditsCookie() {
+    const targetDomain = '.vanceai.com';
 
-  // Query the active tab
-  chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-    const tab = tabs[0];
-    const url = tab.url;
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+        const tab = tabs[0];
+        const url = tab.url;
 
-    // Check if the tab's URL matches the target domain
-    if (url.includes(targetDomain)) {
-      // Attempt to get the "leftCredits" cookie
-      chrome.cookies.get({ url, name: 'leftCredits', domain: targetDomain }, function (cookie) {
-        if (cookie) {
-          // Update the cookie value to '3'
-          chrome.cookies.set({ url, name: 'leftCredits', value: '3', domain: targetDomain }, function (newCookie) {
-            if (newCookie) {
-              console.log('Cookie updated to 3');
-            } else {
-              console.error('Failed to update cookie');
-            }
-          });
+        if (url.includes(targetDomain)) {
+            chrome.cookies.get({ url, name: 'leftCredits', domain: targetDomain }, function (cookie) {
+                if (cookie) {
+                    chrome.cookies.set({ url, name: 'leftCredits', value: '3', domain: targetDomain }, function (newCookie) {
+                        if (newCookie) {
+                            console.log('Cookie updated to 3');
+                        } else {
+                            console.error('Failed to update cookie');
+                        }
+                    });
+                } else {
+                    console.error('Cookie not found');
+                }
+            });
         } else {
-          console.error('Cookie not found');
+            console.error('This tab is not on the target domain');
         }
-      });
-    } else {
-      console.error('This tab is not on the target domain');
-    }
-  });
+    });
 }
 
 /**
- * Attach the updateCookie function to the button click event.
+ * Function to send a message to the service worker to protect the 'leftCredits' cookie.
  */
-document.addEventListener('DOMContentLoaded', function () {
-  const editCookieButton = document.getElementById('editCookieButton');
-  
-  // Add a click event listener to the button
-  editCookieButton.addEventListener('click', updateCookie);
+function protectLeftCreditsCookie() {
+    if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({
+            type: 'PROTECT_COOKIE',
+            cookieName: 'leftCredits'
+        });
+        console.log('Protection request sent for leftCredits cookie.');
+    } else {
+        console.error('Service Worker not available.');
+    }
+}
+
+/**
+ * Attach event listeners to buttons on DOMContentLoaded.
+ */
+document.addEventListener('DOMContentLoaded', () => {
+    const editCookieButton = document.getElementById('editCookieButton');
+    const protectCookieButton = document.getElementById('protectCookieButton');
+
+    editCookieButton.addEventListener('click', updateLeftCreditsCookie);
+    protectCookieButton.addEventListener('click', protectLeftCreditsCookie);
 });
 
-// Export the updateCookie function for modularity
-export { updateCookie };
+// Export functions for modularity
+export { updateLeftCreditsCookie, protectLeftCreditsCookie };
